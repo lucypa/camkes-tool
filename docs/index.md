@@ -325,13 +325,13 @@ echo and client, communicating over a single interface.
 To build this example, from the top-level directory run:
 
 ```bash
-mkdir build-kzm
-cd build-kzm
-../init-build.sh -DPLATFORM=kzm -DCROSS_COMPILER_PREFIX=arm-none-eabi- -DCAMKES_APP=simple -DSIMULATE=1
+mkdir build-ia
+cd build-ia
+../init-build.sh -DPLATFORM=ia32 -DCAMKES_APP=simple -DSIMULATE=1
 ninja
 ```
 
-This produces an image images/simple-image-arm-imx31. To run this image in
+This produces an image images/kernel-ia32-pc99. To run this image in
 qemu:
 
 ```bash
@@ -359,11 +359,11 @@ itself happens over a seL4 endpoint. The connection between the two components
 is described in apps/simple/simple.camkes, and the functional interface that
 echo is providing is described in apps/simple/interfaces/Simple.idl4.
 
-If you want to run this example on IA32, repeat the above procedure with a new build
+If you want to run this example on ARM IMX31, repeat the above procedure with a new build
 directory, replacing the configuration line with the following:
 
 ```bash
-../init-build.sh -DPLATFORM=ia32 -DCAMKES_APP=simple -DSIMULATE=1
+../init-build.sh -DPLATFORM=kzm -DCROSS_COMPILER_PREFIX=arm-none-eabi- -DCAMKES_APP=simple -DSIMULATE=1
 ```
 
 #### Creating An Application
@@ -730,8 +730,6 @@ Now let's create an ADL description of the Ping component:
 ```camkes
 /* apps/hellodataport/components/Ping/Ping.camkes */
 
-import "Porttype.idl4";
-
 component Ping {
   include "porttype.h";
   control;
@@ -746,8 +744,6 @@ the `MyData_t` type. Add a similar description for Pong:
 
 ```camkes
 /* apps/hellodataport/components/Pong/Pong.camkes */
-
-import "Porttype.idl4";
 
 component Pong {
   include "porttype.h";
@@ -777,7 +773,7 @@ int run(void) {
   strncpy((char*)d1, hello, D1_READY_IDX - 1);
 
   d1_release(); // ensure the assignment below occurs after the strcpy above
-  ((*char)d1)[D1_READY_IDX] = 1;
+  ((char*)d1)[D1_READY_IDX] = 1;
 
   /* Wait for Pong to reply. We can assume d2_data is
    * zeroed on startup by seL4.
